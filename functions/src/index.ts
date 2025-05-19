@@ -1,4 +1,7 @@
-import { onDocumentCreated } from "firebase-functions/v2/firestore"; // v2 Firestore trigger
+import {
+  onDocumentCreated,
+  onDocumentUpdated,
+} from "firebase-functions/v2/firestore"; // v2 Firestore trigger
 import { onSchedule, ScheduledEvent } from "firebase-functions/v2/scheduler"; // v2 Scheduled function ve ScheduledEvent türü
 import * as logger from "firebase-functions/logger"; // v2 logger
 import admin = require("firebase-admin");
@@ -284,6 +287,178 @@ export const sendNotificationOnNewDonationOffer = onDocumentCreated(
         error
       );
       return;
+    }
+    return;
+  }
+);
+
+// V2 Firestore Trigger for accepted donation offers
+export const sendNotificationToDonorOnOfferAccepted = onDocumentUpdated(
+  {
+    document: "donationResponses/{responseId}",
+    region: "europe-west1",
+  },
+  async (event) => {
+    if (!event.data) {
+      logger.error(
+        "Bağış teklifi kabul trigger'ı (güncelleme) çalıştı ama event.data yok.",
+        { eventId: event.id }
+      );
+      return;
+    }
+
+    const beforeData = event.data.before.data();
+    const afterData = event.data.after.data();
+    const responseId = event.params.responseId;
+
+    logger.info(
+      `Bağış teklifi güncelleme trigger'ı çalıştı. Response ID: ${responseId}`,
+      { beforeData, afterData }
+    );
+
+    if (!beforeData || !afterData) {
+      logger.error(
+        "Teklifin önceki veya sonraki verisi (beforeData/afterData) bulunamadı."
+      );
+      return;
+    }
+
+    // Check if the status changed to 'accepted'
+    if (beforeData.status !== "accepted" && afterData.status === "accepted") {
+      const donorId = afterData.donorId as string | undefined;
+      const requestId = afterData.requestId as string | undefined;
+      // const donorName = afterData.donorName as string | undefined; // Already available if needed for body
+
+      if (!donorId) {
+        logger.error("Kabul edilen teklif verisinde 'donorId' eksik.", {
+          afterData,
+        });
+        return;
+      }
+      if (!requestId) {
+        logger.error("Kabul edilen teklif verisinde 'requestId' eksik.", {
+          afterData,
+        });
+        return;
+      }
+
+      try {
+        const donorUserDocRef = db.collection("users").doc(donorId);
+        const donorUserDocSnap = await donorUserDocRef.get();
+
+        if (!donorUserDocSnap.exists) {
+          logger.error("Teklifi kabul edilen bağışçı bulunamadı:", donorId);
+          return;
+        }
+
+        const donorUserData = donorUserDocSnap.data() as UserDocument;
+        const fcmTokens = donorUserData?.fcmTokens;
+
+        if (!fcmTokens || fcmTokens.length === 0) {
+          logger.warn(
+            `Teklifi kabul edilen bağışçının (${donorId}) FCM token'ı bulunamadı veya boş.`
+          );
+          return;
+        }
+
+        const requestDocSnap = await db
+          .collection("bloodRequests")
+          .doc(requestId)
+          .get();
+        const requestTitle = requestDocSnap.exists
+          ? (requestDocSnap.data()?.title as string | undefined) ||
+            "ilgili kan talebi"
+          : "ilgili kan talebi";
+        const requestCreatorName = requestDocSnap.exists
+          ? (requestDocSnap.data()?.creatorName as string | undefined)
+          : "";
+
+        const notificationPayload: admin.messaging.NotificationMessagePayload =
+          {
+            title: "Kan Bağışı Teklifiniz Kabul Edildi!",
+            body: `${
+              requestCreatorName
+                ? requestCreatorName + " adlı kullanıcının "
+                : ""
+            }"${requestTitle}" için yaptığınız kan bağışı teklifi kabul edildi. Lütfen detaylar için iletişime geçin.`,
+          };
+
+        const dataPayload: { [key: string]: string } = {
+          type: "donation_offer_accepted",
+          requestId: requestId,
+          responseId: responseId,
+          routePath: `/myAcceptedOffers/${responseId}`, // Örnek yönlendirme
+          clickTimestamp: Date.now().toString(),
+        };
+
+        const messageOptions: admin.messaging.MessagingOptions = {
+          priority: "high",
+        };
+
+        logger.info(
+          `Teklifi kabul edilen bağışçıya (${donorId}) bildirim gönderiliyor. Token sayısı: ${fcmTokens.length}`,
+          {
+            tokens: fcmTokens,
+            notification: notificationPayload,
+            data: dataPayload,
+          }
+        );
+
+        const response = await fcm.sendToDevice(
+          fcmTokens,
+          {
+            notification: notificationPayload,
+            data: dataPayload,
+          },
+          messageOptions
+        );
+
+        logger.info("Kabul bildirimi gönderme sonucu:", {
+          successCount: response.successCount,
+          failureCount: response.failureCount,
+        });
+
+        const tokensToRemove: string[] = [];
+        response.results.forEach((result, index) => {
+          const error = result.error;
+          if (error) {
+            logger.error(
+              `Token'a kabul bildirimi gönderilemedi: ${fcmTokens[index]}`,
+              {
+                errorCode: error.code,
+                errorMessage: error.message,
+              }
+            );
+            if (
+              error.code === "messaging/invalid-registration-token" ||
+              error.code === "messaging/registration-token-not-registered"
+            ) {
+              tokensToRemove.push(fcmTokens[index]);
+            }
+          }
+        });
+
+        if (tokensToRemove.length > 0 && donorUserDocRef) {
+          const newTokens = fcmTokens.filter(
+            (token) => !tokensToRemove.includes(token)
+          );
+          await donorUserDocRef.update({ fcmTokens: newTokens });
+          logger.info(
+            `Geçersiz ${tokensToRemove.length} token kabul edilen bağışçıdan silindi.`,
+            { removedTokens: tokensToRemove }
+          );
+        }
+      } catch (error) {
+        logger.error(
+          "sendNotificationToDonorOnOfferAccepted fonksiyonunda genel hata:",
+          error
+        );
+      }
+    } else {
+      logger.info(
+        `Teklif durumu 'accepted' olarak değişmedi veya zaten 'accepted' idi. Response ID: ${responseId}`,
+        { beforeStatus: beforeData.status, afterStatus: afterData.status }
+      );
     }
     return;
   }
