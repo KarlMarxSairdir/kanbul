@@ -1,0 +1,3 @@
+# Kan grubu ve aciliyet için marker ikonlarını buraya ekleyin.
+# Örnek: A_1.png, A_2.png, A_3.png, 0_1.png, ...
+# Her kan grubu ve aciliyet kombinasyonu için 64x64 PNG önerilir.

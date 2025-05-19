@@ -1,0 +1,247 @@
+# KanBul Mobil Uygulaması Proje Detayları
+
+## 📋 Proje Özeti
+
+KanBul, kan bağışçıları ile acil kan ihtiyacı olan hastane ve hasta yakınlarını gerçek zamanlı, konum tabanlı ve güvenli bir şekilde eşleştiren bir mobil uygulamadır. Acil kan ihtiyaçlarına hızlı çözüm üretmeyi, kan bulunamaması kaynaklı can kayıplarını azaltmayı ve toplumda kan bağışı farkındalığını artırmayı hedefler.
+
+
+##Hedef Kitle:
+  Bireysel Kullanıcılar:
+    Gönüllü Kan Bağışçıları
+    Kan İhtiyacı Olan Hasta/Hasta Yakınları (Bu iki rol aynı kişide birleşebilir)
+  Kurumsal Kullanıcılar:
+    Hastane Yetkilileri (Kan talebi açma, bağış yönetimi)
+
+## 🔧 Kullanılan Teknolojiler
+
+**Frontend:**
+- Flutter (Cross-platform geliştirme)
+- Provider (State management)
+- GoRouter (Navigasyon yönetimi)
+- Google Maps Flutter (Harita entegrasyonu)
+- FL Charts (Veri görselleştirme)
+- Image Picker (Medya seçimi)
+
+**Backend ve Veritabanı:**
+- Firebase Authentication (Kimlik doğrulama)
+- Cloud Firestore (NoSQL veritabanı)
+- Firebase Storage (Medya depolama)
+- Firebase Cloud Messaging (Bildirim servisi)
+- Cloud Functions (Sunucu taraflı işlevler)
+- GeoFirestore (Konum tabanlı sorgular)
+
+
+## 📊 Veritabanı Modeli
+
+erDiagram
+    USERS {
+        string userId PK
+        string email
+        string fullName
+        string phoneNumber NULL
+        string role "'individual' veya 'hospital'" %% Ana rol
+        string photoUrl NULL
+        timestamp createdAt
+        timestamp updatedAt
+        %% Gömülü Ayarlar (Map olarak)
+        object settings "{notificationsEnabled(bool, default:true), privacyLevel(string 'public'|'private', default:'public'), locationSharingEnabled(bool, default:true)}"
+        %% Gömülü Profil Bilgileri (Role göre doldurulur)
+        object profileData "{
+            bloodType: string NULL, %% Individual
+            lastDonationDate: timestamp NULL, %% Individual
+            donationCount: int DEFAULT 0, %% Individual
+            isAvailableToDonate: bool DEFAULT true, %% Individual
+            medicalInfo: string NULL, %% Individual
+            hospitalName: string NULL, %% Hospital
+            hospitalAddress: string NULL, %% Hospital
+            hospitalContact: string NULL, %% Hospital
+            isHospitalVerified: bool DEFAULT false %% Hospital
+        }"
+        %% Gömülü Son Bilinen Konum (Map olarak)
+        object lastKnownLocation NULL "{latitude(number), longitude(number), timestamp(timestamp)}"
+    }
+
+    BLOOD_REQUESTS {
+        string requestId PK
+        string creatorId FK
+        string creatorName DENORMALIZED NULL
+        string creatorRole DENORMALIZED NULL %% 'individual' veya 'hospital'
+        string bloodType
+        string status "'active', 'fulfilled', 'canceled'"
+        GeoPoint location PK %% Firestore GeoPoint tipi
+        string title
+        string description
+        int unitsNeeded
+        int urgencyLevel
+        int responseCount DEFAULT 0 DENORMALIZED
+        timestamp createdAt
+        timestamp updatedAt
+        string patientInfo NULL
+        string hospitalName DENORMALIZED NULL %% Eğer hastane oluşturduysa
+    }
+
+    DONATIONS {
+        string donationId PK
+        string donorId FK
+        string donorName DENORMALIZED NULL
+        string donorBloodType DENORMALIZED NULL
+        string donorPhotoUrl DENORMALIZED NULL
+        string requestId FK
+        string requestCreatorId FK
+        string status "'pending', 'accepted', 'rejected', 'completed'"
+        timestamp respondedAt
+        timestamp scheduledDate NULL
+        timestamp completedDate NULL
+        string message NULL
+        timestamp createdAt
+        timestamp updatedAt
+        %% Opsiyonel: Bağışın yapıldığı yer
+        GeoPoint donationLocation NULL
+    }
+
+    BADGES {
+       string badgeId PK
+       string name
+       string description
+       string imageUrl
+       string criteria "örn: 'donationCount >= 5'"
+       string badgeType "'donation', 'community', etc."
+    }
+
+    USER_BADGES {
+       %% Alt koleksiyon olarak daha mantıklı: users/{userId}/badges/{badgeId}
+       %% Bu yüzden ayrı bir PK'ya gerek yok, belge ID'si badgeId olabilir.
+       string badgeId PK "Badge ID'si"
+       timestamp earningDate
+       %% string userId FK (Alt koleksiyon olduğu için zaten bilinir)
+    }
+
+    %% İlişkiler (Alt koleksiyonlar ve referanslar)
+    USERS ||--|{ BLOOD_REQUESTS : creates
+    USERS ||--|{ DONATIONS : makes_response_to
+    USERS ||--o{ USER_BADGES : earns "(Subcollection)"
+    BLOOD_REQUESTS ||--o{ DONATIONS : associated_with
+    BADGES |o--o{ USER_BADGES : defines
+```
+
+## 📱 Sistem Mimarisi
+
+**Mimari Yaklaşım: Katmanlı Mimari (MVVM + Repository Pattern)**
+
+```
+Presentation → Business Logic → Data → External
+```
+
+1. **Presentation Katmanı:** Flutter UI, Provider, GoRouter
+2. **Business Logic Katmanı:** Providers, Use Cases, Models
+3. **Data Katmanı:** Repositories, Services, DTOs
+4. **External Katmanı:** Firebase, Google Maps, Platform APIs
+
+## 🔄 İş Akışı ve Metodoloji
+
+**Agile/Scrum Metodolojisi:**
+- **Sprint Süresi:** 2 hafta
+- **Günlük Standuplar:** 15 dakika
+- **Sprint Planlama:** Her sprint başında 2 saat
+- **Sprint Retrospektifi:** Her sprint sonunda 1 saat
+- **Kanban Tablosu:** To Do, In Progress, Review, Done
+
+**Geliştirme Süreci:**
+1. Requirement Analysis → UI/UX Design → Development → Testing → Deployment
+2. Prototip, PoC ve MVP yaklaşımı ile kademeli geliştirme
+3. Feature branch workflow ile code review ve merge süreçleri
+
+## 📅 İş Planı ve Zaman Çizelgesi
+
+**Faz 1: Proje Kurulumu (1 hafta)**
+- Proje yapısının oluşturulması
+- Temel paketlerin kurulumu
+- CI/CD pipeline kurulumu
+
+**Faz 2-3: Tasarım ve Giriş/Kayıt Ekranları (2 hafta)**
+- UI/UX tasarımların tamamlanması
+- Giriş/Kayıt ekranlarının geliştirilmesi
+- Firebase Authentication entegrasyonu
+
+**Faz 4-5: Rol Sistemi ve Ana Ekranlar (2 hafta)**
+- Kullanıcı rolleri ve yönlendirme
+- Ana ekranların tasarlanması ve geliştirilmesi
+- State management stratejisinin uygulanması
+
+**Faz 6: Bağışçı Paneli (2 hafta)**
+- Bağışçı ana ekranı
+- Puan ve rozet sistemi
+- Yakındaki talepler haritası
+
+**Faz 7: Kan Talebi Oluşturma (2 hafta)**
+- Talep formu oluşturma
+- Talep yönetim ekranı
+- Bildirim sistemi
+
+**Faz 8: Harita Görünümü (2 hafta)**
+- Google Maps entegrasyonu
+- Talep işaretleyicileri ve kümeleme
+- Rota oluşturma ve navigasyon
+
+**Faz 9: Çağrıya Yanıt Verme (2 hafta)**
+- Yanıt verme süreci
+- Randevu oluşturma
+- Bağış takibi
+
+**Faz 10: Profil ve Bağış Geçmişi (2 hafta)**
+- Profil ekranı ve düzenleme
+- Bağış geçmişi ve istatistikler
+- Rozetler sistemi
+
+**Faz 11: Bildirimler ve Hatırlatmalar (1 hafta)**
+- Push bildirimleri
+- Konum bazlı bildirimler
+- Randevu hatırlatmaları
+
+
+
+## 📥 Girdiler ve 📤 Çıktılar
+
+### Girdiler (Inputs)
+
+1. **Kullanıcı Girdileri:**
+   - Kimlik doğrulama verileri (e-posta, şifre)
+   - Kişisel bilgiler (ad-soyad, telefon)
+   - Sağlık bilgileri (kan grubu, bağış geçmişi)
+   - Konum bilgileri
+   - Kan talebi detayları
+   - Yanıt ve randevu bilgileri
+
+2. **Sistem Girdileri:**
+   - Firebase Auth durumu
+   - Konum verileri (GPS)
+   - Bildirim tokenleri
+   - Yerel ve uzak veritabanı durumu
+
+3. **Dış Servis Girdileri:**
+   - Google Maps API verileri
+   - Firebase Cloud Messaging bildirimleri
+
+### Çıktılar (Outputs)
+
+1. **Kullanıcı Arayüzü Çıktıları:**
+   - Profil görünümü
+   - Kan talepleri listesi ve haritası
+   - Bağış geçmişi ve istatistikleri
+   - Rozet koleksiyonu
+   - Bildirim ve uyarılar
+
+2. **Veri İşleme Çıktıları:**
+   - Kayıtlı kullanıcı profilleri
+   - Kan talepleri kaydı
+   - Bağış kayıtları ve yanıtlar
+   - Kazanılan rozetler
+   - Kullanıcı ayarları
+
+3. **Entegrasyon Çıktıları:**
+   - Bildirim gönderimi
+   - Harita üzerinde talep görünümleri
+   - Navigasyon yönlendirmeleri
+   - Paylaşılabilir bağlantılar
+
+

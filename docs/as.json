@@ -1,0 +1,547 @@
+{
+  "modelName": "KanBul Database",
+  "modelType": "Firebase",
+  "modelVersion": "1.0.0",
+  "collections": [
+    {
+      "collectionName": "USERS",
+      "type": "object",
+      "primaryKey": ["userId"],
+      "properties": [
+        {
+          "name": "userId",
+          "type": "string",
+          "primaryKey": true,
+          "required": true,
+          "description": "Kullanıcı benzersiz kimliği"
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "required": true,
+          "description": "Kullanıcı e-posta adresi"
+        },
+        {
+          "name": "fullName",
+          "type": "string",
+          "required": true,
+          "description": "Kullanıcının tam adı"
+        },
+        {
+          "name": "phoneNumber",
+          "type": "string",
+          "required": false,
+          "description": "Kullanıcının telefon numarası"
+        },
+        {
+          "name": "role",
+          "type": "string",
+          "required": true,
+          "description": "Kullanıcı rolü: 'individual' veya 'hospital'",
+          "enum": ["individual", "hospital"]
+        },
+        {
+          "name": "photoUrl",
+          "type": "string",
+          "required": false,
+          "description": "Profil fotoğrafı URL'si"
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "required": true,
+          "description": "Hesap oluşturulma tarihi"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "required": true,
+          "description": "Son güncelleme tarihi"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": true,
+          "description": "Kullanıcı ayarları",
+          "properties": [
+            {
+              "name": "notificationsEnabled",
+              "type": "boolean",
+              "required": true,
+              "default": true,
+              "description": "Bildirimlerin aktif olup olmadığı"
+            },
+            {
+              "name": "privacyLevel",
+              "type": "string",
+              "required": true,
+              "default": "public",
+              "enum": ["public", "private"],
+              "description": "Gizlilik seviyesi"
+            },
+            {
+              "name": "locationSharingEnabled",
+              "type": "boolean",
+              "required": true,
+              "default": true,
+              "description": "Konum paylaşımının aktif olup olmadığı"
+            }
+          ]
+        },
+        {
+          "name": "profileData",
+          "type": "object",
+          "required": true,
+          "description": "Role göre değişen profil bilgileri",
+          "properties": [
+            {
+              "name": "bloodType",
+              "type": "string",
+              "required": false,
+              "description": "Kan grubu (Individual için)"
+            },
+            {
+              "name": "lastDonationDate",
+              "type": "timestamp",
+              "required": false,
+              "description": "Son bağış tarihi (Individual için)"
+            },
+            {
+              "name": "donationCount",
+              "type": "integer",
+              "required": true,
+              "default": 0,
+              "description": "Toplam bağış sayısı (Individual için)"
+            },
+            {
+              "name": "isAvailableToDonate",
+              "type": "boolean",
+              "required": true,
+              "default": true,
+              "description": "Bağış yapmaya uygun olup olmadığı (Individual için)"
+            },
+            {
+              "name": "medicalInfo",
+              "type": "string",
+              "required": false,
+              "description": "Tıbbi bilgiler (Individual için)"
+            },
+            {
+              "name": "hospitalName",
+              "type": "string",
+              "required": false,
+              "description": "Hastane adı (Hospital için)"
+            },
+            {
+              "name": "hospitalAddress",
+              "type": "string",
+              "required": false,
+              "description": "Hastane adresi (Hospital için)"
+            },
+            {
+              "name": "hospitalContact",
+              "type": "string",
+              "required": false,
+              "description": "Hastane iletişim bilgileri (Hospital için)"
+            },
+            {
+              "name": "isHospitalVerified",
+              "type": "boolean",
+              "required": true,
+              "default": false,
+              "description": "Hastanenin doğrulanmış olup olmadığı (Hospital için)"
+            }
+          ]
+        },
+        {
+          "name": "lastKnownLocation",
+          "type": "object",
+          "required": false,
+          "description": "Kullanıcının son bilinen konumu",
+          "properties": [
+            {
+              "name": "latitude",
+              "type": "number",
+              "required": true,
+              "description": "Enlem"
+            },
+            {
+              "name": "longitude",
+              "type": "number",
+              "required": true,
+              "description": "Boylam"
+            },
+            {
+              "name": "timestamp",
+              "type": "timestamp",
+              "required": true,
+              "description": "Konumun güncellenme tarihi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "collectionName": "BLOOD_REQUESTS",
+      "type": "object",
+      "primaryKey": ["requestId"],
+      "properties": [
+        {
+          "name": "requestId",
+          "type": "string",
+          "primaryKey": true,
+          "required": true,
+          "description": "Talep benzersiz kimliği"
+        },
+        {
+          "name": "creatorId",
+          "type": "string",
+          "required": true,
+          "description": "Talebi oluşturan kullanıcının ID'si",
+          "foreignKey": {
+            "collection": "USERS",
+            "field": "userId"
+          }
+        },
+        {
+          "name": "creatorName",
+          "type": "string",
+          "required": false,
+          "description": "Talebi oluşturan kullanıcının adı (denormalized)"
+        },
+        {
+          "name": "creatorRole",
+          "type": "string",
+          "required": false,
+          "description": "Talebi oluşturan kullanıcının rolü: 'individual' veya 'hospital' (denormalized)",
+          "enum": ["individual", "hospital"]
+        },
+        {
+          "name": "bloodType",
+          "type": "string",
+          "required": true,
+          "description": "İhtiyaç duyulan kan grubu"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "description": "Talebin durumu: 'active', 'fulfilled', 'canceled'",
+          "enum": ["active", "fulfilled", "canceled"]
+        },
+        {
+          "name": "location",
+          "type": "geoPoint",
+          "primaryKey": true,
+          "required": true,
+          "description": "Talebin konumu (Firestore GeoPoint)"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "required": true,
+          "description": "Talep başlığı"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": true,
+          "description": "Talep açıklaması"
+        },
+        {
+          "name": "unitsNeeded",
+          "type": "integer",
+          "required": true,
+          "description": "İhtiyaç duyulan kan ünitesi sayısı"
+        },
+        {
+          "name": "urgencyLevel",
+          "type": "integer",
+          "required": true,
+          "description": "Aciliyet seviyesi"
+        },
+        {
+          "name": "responseCount",
+          "type": "integer",
+          "default": 0,
+          "required": true,
+          "description": "Yanıt sayısı (denormalized)"
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "required": true,
+          "description": "Oluşturulma tarihi"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "required": true,
+          "description": "Son güncelleme tarihi"
+        },
+        {
+          "name": "patientInfo",
+          "type": "string",
+          "required": false,
+          "description": "Hasta bilgileri"
+        },
+        {
+          "name": "hospitalName",
+          "type": "string",
+          "required": false,
+          "description": "Hastane adı (hastane tarafından oluşturulduysa) (denormalized)"
+        }
+      ]
+    },
+    {
+      "collectionName": "DONATIONS",
+      "type": "object",
+      "primaryKey": ["donationId"],
+      "properties": [
+        {
+          "name": "donationId",
+          "type": "string",
+          "primaryKey": true,
+          "required": true,
+          "description": "Bağış benzersiz kimliği"
+        },
+        {
+          "name": "donorId",
+          "type": "string",
+          "required": true,
+          "description": "Bağışçının ID'si",
+          "foreignKey": {
+            "collection": "USERS",
+            "field": "userId"
+          }
+        },
+        {
+          "name": "donorName",
+          "type": "string",
+          "required": false,
+          "description": "Bağışçının adı (denormalized)"
+        },
+        {
+          "name": "donorBloodType",
+          "type": "string",
+          "required": false,
+          "description": "Bağışçının kan grubu (denormalized)"
+        },
+        {
+          "name": "donorPhotoUrl",
+          "type": "string",
+          "required": false,
+          "description": "Bağışçının profil fotoğrafı URL'si (denormalized)"
+        },
+        {
+          "name": "requestId",
+          "type": "string",
+          "required": true,
+          "description": "İlgili kan talebi ID'si",
+          "foreignKey": {
+            "collection": "BLOOD_REQUESTS",
+            "field": "requestId"
+          }
+        },
+        {
+          "name": "requestCreatorId",
+          "type": "string",
+          "required": true,
+          "description": "Talebi oluşturan kullanıcının ID'si",
+          "foreignKey": {
+            "collection": "USERS",
+            "field": "userId"
+          }
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "required": true,
+          "description": "Bağış durumu: 'pending', 'accepted', 'rejected', 'completed'",
+          "enum": ["pending", "accepted", "rejected", "completed"]
+        },
+        {
+          "name": "respondedAt",
+          "type": "timestamp",
+          "required": true,
+          "description": "Yanıt verilen tarih"
+        },
+        {
+          "name": "scheduledDate",
+          "type": "timestamp",
+          "required": false,
+          "description": "Planlanmış bağış tarihi"
+        },
+        {
+          "name": "completedDate",
+          "type": "timestamp",
+          "required": false,
+          "description": "Tamamlanma tarihi"
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "required": false,
+          "description": "Bağışçının mesajı"
+        },
+        {
+          "name": "createdAt",
+          "type": "timestamp",
+          "required": true,
+          "description": "Oluşturulma tarihi"
+        },
+        {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "required": true,
+          "description": "Son güncelleme tarihi"
+        },
+        {
+          "name": "donationLocation",
+          "type": "geoPoint",
+          "required": false,
+          "description": "Bağışın yapıldığı konum"
+        }
+      ]
+    },
+    {
+      "collectionName": "BADGES",
+      "type": "object",
+      "primaryKey": ["badgeId"],
+      "properties": [
+        {
+          "name": "badgeId",
+          "type": "string",
+          "primaryKey": true,
+          "required": true,
+          "description": "Rozet benzersiz kimliği"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "description": "Rozet adı"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": true,
+          "description": "Rozet açıklaması"
+        },
+        {
+          "name": "imageUrl",
+          "type": "string",
+          "required": true,
+          "description": "Rozet görsel URL'si"
+        },
+        {
+          "name": "criteria",
+          "type": "string",
+          "required": true,
+          "description": "Rozet kazanma kriteri, örn: 'donationCount >= 5'"
+        },
+        {
+          "name": "badgeType",
+          "type": "string",
+          "required": true,
+          "description": "Rozet türü: 'donation', 'community', vs.",
+          "enum": ["donation", "community"]
+        }
+      ]
+    },
+    {
+      "collectionName": "USER_BADGES",
+      "type": "object",
+      "subCollectionOf": "USERS",
+      "primaryKey": ["badgeId"],
+      "comment": "Alt koleksiyon olarak: users/{userId}/badges/{badgeId}",
+      "properties": [
+        {
+          "name": "badgeId",
+          "type": "string",
+          "primaryKey": true,
+          "required": true,
+          "description": "Badge ID'si",
+          "foreignKey": {
+            "collection": "BADGES",
+            "field": "badgeId"
+          }
+        },
+        {
+          "name": "earningDate",
+          "type": "timestamp",
+          "required": true,
+          "description": "Rozet kazanma tarihi"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "name": "creates",
+      "type": "oneToMany",
+      "source": {
+        "collection": "USERS",
+        "cardinality": "1"
+      },
+      "target": {
+        "collection": "BLOOD_REQUESTS",
+        "cardinality": "n"
+      },
+      "description": "Kullanıcılar kan talebi oluşturur"
+    },
+    {
+      "name": "makes_response_to",
+      "type": "oneToMany",
+      "source": {
+        "collection": "USERS",
+        "cardinality": "1"
+      },
+      "target": {
+        "collection": "DONATIONS",
+        "cardinality": "n"
+      },
+      "description": "Kullanıcılar bağış yapar"
+    },
+    {
+      "name": "earns",
+      "type": "oneToMany",
+      "source": {
+        "collection": "USERS",
+        "cardinality": "1"
+      },
+      "target": {
+        "collection": "USER_BADGES",
+        "cardinality": "n",
+        "relationship": "subCollection"
+      },
+      "description": "Kullanıcılar rozet kazanır (Alt koleksiyon)"
+    },
+    {
+      "name": "associated_with",
+      "type": "oneToMany",
+      "source": {
+        "collection": "BLOOD_REQUESTS",
+        "cardinality": "1"
+      },
+      "target": {
+        "collection": "DONATIONS",
+        "cardinality": "n"
+      },
+      "description": "Kan talepleri bağışlarla ilişkilidir"
+    },
+    {
+      "name": "defines",
+      "type": "oneToMany",
+      "source": {
+        "collection": "BADGES",
+        "cardinality": "1"
+      },
+      "target": {
+        "collection": "USER_BADGES",
+        "cardinality": "n"
+      },
+      "description": "Rozetler kullanıcı rozetlerini tanımlar"
+    }
+  ]
+}

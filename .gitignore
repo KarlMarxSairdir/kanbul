@@ -1,0 +1,80 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+
+
+linux/
+windows/
+macos/
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+/build/
+ios/Pods/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+ios/Runner/GeneratedPluginRegistrant.*
+android/key.properties
+android/local.properties
+android/.gradle/
+android/app/src/main/jniLibs/
+
+# Firebase
+lib/firebase_options.dart
+
+# IDE specific
+.idea/
+*.iml
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/extensions.json
+# ... (diğer IDE'ye özel dosyalar)
+
+# Sensitive files
+*.jks
+*.keystore
+*.pem
+*.p12
+secrets.json
+.env
+
+# Flutter log ve lint dosyaları
+custom_lint.log
+flutter_log.txt
+
+# macOS build ve plugin dosyaları
+directory
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
+macos/Flutter/GeneratedPluginRegistrant.swift
+
+# Linux ve Windows build/plugin dosyaları
+linux/flutter/
+windows/flutter/
+
+# Flutter metadata (isteğe bağlı, genellikle eklenir)
+.metadata
+
+# Geçici ve yedek dosyalar
+*.tmp
+*.db
+*.sqlite
+*.bak
+*.lock
+*.orig
+*.swo
