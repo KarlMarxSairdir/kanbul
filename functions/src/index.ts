@@ -10,7 +10,104 @@ admin.initializeApp();
 const db = admin.firestore();
 const fcm = admin.messaging();
 
-// Define interfaces for better type safety
+// Helper function for distance calculation (Haversine formula)
+function getDistanceInKm(
+  point1: admin.firestore.GeoPoint,
+  point2: admin.firestore.GeoPoint
+): number {
+  const R = 6371; // Radius of the earth in km
+  const dLat = deg2rad(point2.latitude - point1.latitude);
+  const dLon = deg2rad(point2.longitude - point1.longitude);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(point1.latitude)) *
+      Math.cos(deg2rad(point2.latitude)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const d = R * c; // Distance in km
+  return d;
+}
+
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180);
+}
+
+// Blood compatibility check (simplified)
+// Based on lib/core/utils/blood_compatibility.dart
+function getCompatibleRecipientGroups(donorBloodType: string): string[] {
+  switch (donorBloodType) {
+    case "O-":
+      return ["O-", "O+", "A-", "A+", "B-", "B+", "AB-", "AB+"];
+    case "O+":
+      return ["O+", "A+", "B+", "AB+"];
+    case "A-":
+      return ["A-", "A+", "AB-", "AB+"];
+    case "A+":
+      return ["A+", "AB+"];
+    case "B-":
+      return ["B-", "B+", "AB-", "AB+"];
+    case "B+":
+      return ["B+", "AB+"];
+    case "AB-":
+      return ["AB-", "AB+"];
+    case "AB+":
+      return ["AB+"];
+    default:
+      return [];
+  }
+}
+
+function canDonateTo(
+  donorBloodType: string | undefined,
+  recipientBloodType: string | undefined
+): boolean {
+  if (!donorBloodType || !recipientBloodType) return false;
+  const compatibleGroups = getCompatibleRecipientGroups(donorBloodType);
+  return compatibleGroups.includes(recipientBloodType);
+}
+
+// Define interfaces for User data if not already present or enhance them
+interface UserProfileData {
+  bloodType?: string;
+  lastDonationDate?: admin.firestore.Timestamp;
+  isAvailableToDonate?: boolean;
+  fullName?: string;
+  email?: string; // Genellikle Firebase Auth üzerinden gelir ama profil için de tutulabilir
+  phoneNumber?: string;
+  photoUrl?: string;
+  role?: "individual" | "hospital";
+  donationCount?: number;
+  medicalInfo?: string; // Bireysel kullanıcılar için
+  hospitalName?: string; // Hastane kullanıcıları için
+  hospitalAddress?: string; // Hastane kullanıcıları için
+  hospitalContact?: string; // Hastane kullanıcıları için
+  isHospitalVerified?: boolean; // Hastane kullanıcıları için
+  createdAt?: admin.firestore.Timestamp;
+  updatedAt?: admin.firestore.Timestamp;
+  // Diğer potansiyel profil alanları: dateOfBirth, gender, address vb.
+}
+
+interface UserSettings {
+  notificationsEnabled?: boolean;
+  notifyForNearbyRequests?: boolean; // Yakındaki talepler için bildirim ayarı
+  privacyLevel?: "public" | "private"; // Profil gizlilik seviyesi
+  locationSharingEnabled?: boolean; // Konum paylaşım ayarı
+  language?: string; // Uygulama dili tercihi (örn: "tr", "en")
+  theme?: "light" | "dark" | "system"; // Uygulama tema tercihi
+  eligibleForDonationNotification?: boolean; // Bağışa uygunluk bildirimi için ayar
+  // Diğer potansiyel ayarlar: notificationSound, emailNotificationsEnabled, smsNotificationsEnabled vb.
+}
+
+interface UserDocument {
+  id?: string; // User ID
+  fcmTokens?: string[];
+  profileData?: UserProfileData;
+  settings?: UserSettings;
+  lastKnownLocation?: admin.firestore.GeoPoint;
+  // ... other user fields
+}
+
 interface IzmirApiRecord {
   ADI: string;
   ENLEM: string | number;
@@ -394,5 +491,287 @@ export const syncIzmirDonationCenters = onSchedule(
         errorObjectString: String(error),
       });
     }
+  }
+);
+
+// V2 Firestore Trigger for new blood requests
+export const notifyUsersOfNearbyRequests = onDocumentCreated(
+  {
+    document: "bloodRequests/{requestId}",
+    region: "europe-west1",
+  },
+  async (event) => {
+    const snapshot = event.data;
+    if (!snapshot) {
+      logger.error("Yeni kan talebi trigger'ı çalıştı ama snapshot yok.", {
+        eventId: event.id,
+      });
+      return;
+    }
+
+    const requestData = snapshot.data();
+    const requestId = snapshot.id;
+    logger.info(`Yeni kan talebi trigger'ı çalıştı. Request ID: ${requestId}`, {
+      requestData,
+    });
+
+    if (!requestData) {
+      logger.error("Talep verisi (requestData) bulunamadı.");
+      return;
+    }
+
+    const requestBloodType = requestData.bloodType as string | undefined;
+    const requestLocation = requestData.location as
+      | admin.firestore.GeoPoint
+      | undefined;
+    const requestTitle = (requestData.title as string) || "Acil Kan İhtiyacı"; // Now used
+    const requestCreatorId = requestData.creatorId as string | undefined;
+
+    if (!requestBloodType || !requestLocation) {
+      logger.error("Talep verisinde 'bloodType' veya 'location' eksik.", {
+        requestData,
+      });
+      return;
+    }
+
+    const usersSnapshot = await db.collection("users").get();
+    if (usersSnapshot.empty) {
+      logger.info("Bildirim gönderilecek kullanıcı bulunamadı.");
+      return;
+    }
+
+    const nearbyRadiusKm = 20; // 20 km yarıçap, ayarlanabilir.
+    const notificationPromises: Promise<
+      string | admin.firestore.WriteResult | null
+    >[] = [];
+
+    for (const userDoc of usersSnapshot.docs) {
+      const userData = userDoc.data() as UserDocument;
+      const userId = userDoc.id;
+
+      // Skip the user who created the request
+      if (userId === requestCreatorId) {
+        continue;
+      }
+
+      const userProfile = userData.profileData;
+      const userSettings = userData.settings;
+      const userFcmTokens = userData.fcmTokens;
+      const userLocation = userData.lastKnownLocation;
+
+      if (
+        userProfile?.bloodType &&
+        userSettings?.notificationsEnabled &&
+        userSettings?.notifyForNearbyRequests !== false && // Default to true if undefined
+        userProfile?.isAvailableToDonate !== false && // Default to true if undefined
+        userFcmTokens &&
+        userFcmTokens.length > 0 &&
+        userLocation
+      ) {
+        if (canDonateTo(userProfile.bloodType, requestBloodType)) {
+          const distance = getDistanceInKm(userLocation, requestLocation);
+          if (distance <= nearbyRadiusKm) {
+            logger.info(
+              `Kullanıcı ${userId} (${
+                userProfile.bloodType
+              }) talep için uygun ve ${distance.toFixed(2)}km yakınlıkta.`
+            );
+            const notificationPayload: admin.messaging.NotificationMessagePayload =
+              {
+                title: "Yakınınızda Kan İhtiyacı Var!",
+                body: `${userProfile.bloodType} kan grubunuzla uyumlu '${requestTitle}' talebi yakınınızda oluşturuldu.`,
+              };
+            const dataPayload = {
+              type: "nearby_blood_request",
+              requestId: requestId,
+              routePath: `/bloodRequestDetails/${requestId}`, // Örnek yönlendirme yolu
+              clickTimestamp: Date.now().toString(),
+            };
+
+            const message: admin.messaging.Message = {
+              notification: notificationPayload,
+              data: dataPayload,
+              token: "", // Will be set per token
+            };
+
+            userFcmTokens.forEach((token) => {
+              const singleMessage = { ...message, token: token };
+              notificationPromises.push(
+                fcm.send(singleMessage).catch((error) => {
+                  logger.error(`Token'a bildirim gönderilemedi: ${token}`, {
+                    errorCode: error.code,
+                    errorMessage: error.message,
+                  });
+                  if (
+                    error.code === "messaging/invalid-registration-token" ||
+                    error.code === "messaging/registration-token-not-registered"
+                  ) {
+                    const userRef = db.collection("users").doc(userId);
+                    return userRef
+                      .update({
+                        fcmTokens:
+                          admin.firestore.FieldValue.arrayRemove(token),
+                      })
+                      .catch((updateError) => {
+                        logger.error(
+                          `Token güncelleme hatası kullanıcı ${userId} için token ${token}`,
+                          { error: updateError }
+                        );
+                        return null; // If update fails, resolve outer promise to null
+                      });
+                  }
+                  return null; // If error code doesn't match for token removal
+                })
+              );
+            });
+          }
+        }
+      }
+    }
+    if (notificationPromises.length > 0) {
+      await Promise.all(notificationPromises);
+      logger.info(
+        `${notificationPromises.length} adet "yakındaki talep" bildirimi gönderme işlemi denendi.`
+      );
+    } else {
+      logger.info(
+        "Yakındaki talep için uygun kullanıcıya bildirim gönderilmedi."
+      );
+    }
+    return;
+  }
+);
+
+// V2 Scheduled Function for donation eligibility
+export const notifyUsersForDonationEligibility = onSchedule(
+  {
+    schedule: "every 24 hours", // "0 9 * * *" for 9 AM daily
+    timeZone: "Europe/Istanbul",
+    region: "europe-west1",
+  },
+  async (event: ScheduledEvent) => {
+    logger.info("Zamanlanmış fonksiyon: Bağış uygunluk kontrolü başladı.", {
+      jobName: event.jobName,
+      scheduleTime: event.scheduleTime,
+    });
+
+    const usersSnapshot = await db.collection("users").get();
+    if (usersSnapshot.empty) {
+      logger.info("Uygunluk kontrolü için kullanıcı bulunamadı.");
+      return;
+    }
+
+    const eligibilityPeriodDays = 56;
+    const notificationPromises: Promise<
+      string | admin.firestore.WriteResult | null
+    >[] = [];
+
+    for (const userDoc of usersSnapshot.docs) {
+      const userData = userDoc.data() as UserDocument;
+      const userId = userDoc.id;
+      const userProfile = userData.profileData;
+      const userSettings = userData.settings;
+      const userFcmTokens = userData.fcmTokens;
+
+      if (
+        userProfile?.lastDonationDate &&
+        userSettings?.notificationsEnabled &&
+        userFcmTokens &&
+        userFcmTokens.length > 0
+      ) {
+        const lastDonationTime = userProfile.lastDonationDate.toMillis();
+        const eligibilityTime =
+          lastDonationTime + eligibilityPeriodDays * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        if (
+          now >= eligibilityTime &&
+          (userProfile.isAvailableToDonate === false ||
+            userProfile.isAvailableToDonate === undefined)
+        ) {
+          logger.info(
+            `Kullanıcı ${userId} tekrar bağış yapabilir. Son bağış: ${userProfile.lastDonationDate
+              .toDate()
+              .toISOString()}`
+          );
+
+          const notificationPayload: admin.messaging.NotificationMessagePayload =
+            {
+              title: "Tekrar Kan Bağışında Bulunabilirsiniz!",
+              body: "Kan bağışı için uygunluk süreniz doldu. Haydi, hayat kurtarmaya devam edin!",
+            };
+          const dataPayload = {
+            type: "donation_eligibility",
+            routePath: "/profile", // Örnek yönlendirme
+            clickTimestamp: Date.now().toString(),
+          };
+
+          const message: admin.messaging.Message = {
+            notification: notificationPayload,
+            data: dataPayload,
+            token: "", // Will be set per token
+          };
+
+          userFcmTokens.forEach((token) => {
+            const singleMessage = { ...message, token: token };
+            notificationPromises.push(
+              fcm
+                .send(singleMessage)
+                .then(async (response) => {
+                  if (userProfile.isAvailableToDonate === false) {
+                    await db
+                      .collection("users")
+                      .doc(userId)
+                      .update({ "profileData.isAvailableToDonate": true });
+                    logger.info(
+                      `Kullanıcı ${userId} durumu 'bağış yapabilir' olarak güncellendi.`
+                    );
+                  }
+                  return response; // response is messageId (string)
+                })
+                .catch((error) => {
+                  logger.error(
+                    `Token'a uygunluk bildirimi gönderilemedi: ${token}`,
+                    {
+                      errorCode: error.code,
+                      errorMessage: error.message,
+                    }
+                  );
+                  if (
+                    error.code === "messaging/invalid-registration-token" ||
+                    error.code === "messaging/registration-token-not-registered"
+                  ) {
+                    const userRef = db.collection("users").doc(userId);
+                    return userRef
+                      .update({
+                        fcmTokens:
+                          admin.firestore.FieldValue.arrayRemove(token),
+                      })
+                      .catch((updateError) => {
+                        logger.error(
+                          `Token güncelleme hatası kullanıcı ${userId} için token ${token}`,
+                          { error: updateError }
+                        );
+                        return null; // If update fails, resolve outer promise to null
+                      });
+                  }
+                  return null; // If error code doesn't match for token removal
+                })
+            );
+          });
+        }
+      }
+    }
+    if (notificationPromises.length > 0) {
+      await Promise.all(notificationPromises);
+      logger.info(
+        `${notificationPromises.length} adet "bağış uygunluk" bildirimi gönderme işlemi denendi.`
+      );
+    } else {
+      logger.info(
+        "Bağış uygunluğu için bildirim gönderilecek kullanıcı bulunamadı/uygun değil."
+      );
+    }
+    return;
   }
 );
