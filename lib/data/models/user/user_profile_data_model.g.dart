@@ -42,38 +42,30 @@ _$UserProfileDataModelImpl _$$UserProfileDataModelImplFromJson(
 Map<String, dynamic> _$$UserProfileDataModelImplToJson(
         _$UserProfileDataModelImpl instance) =>
     <String, dynamic>{
-      if (instance.bloodType case final value?) 'bloodType': value,
-      if (const TimestampConverter().toJson(instance.lastDonationDate)
-          case final value?)
-        'lastDonationDate': value,
+      'bloodType': instance.bloodType,
+      'lastDonationDate':
+          const TimestampConverter().toJson(instance.lastDonationDate),
       'donationCount': instance.donationCount,
       'isAvailableToDonate': instance.isAvailableToDonate,
-      if (instance.medicalInfo case final value?) 'medicalInfo': value,
+      'medicalInfo': instance.medicalInfo,
       'gender': _$UserGenderEnumMap[instance.gender]!,
-      if (const TimestampConverter().toJson(instance.birthDate)
-          case final value?)
-        'birthDate': value,
-      if (instance.activeRequestId case final value?) 'activeRequestId': value,
+      'birthDate': const TimestampConverter().toJson(instance.birthDate),
+      'activeRequestId': instance.activeRequestId,
       'totalLivesSaved': instance.totalLivesSaved,
       'badges': instance.badges,
       'level': instance.level,
       'points': instance.points,
-      if (const TimestampConverter().toJson(instance.nextAppointmentDate)
-          case final value?)
-        'nextAppointmentDate': value,
-      if (instance.nextAppointmentLocation case final value?)
-        'nextAppointmentLocation': value,
-      if (const GeoPointConverter().toJson(instance.location) case final value?)
-        'location': value,
-      if (const TimestampConverter().toJson(instance.lastLocationUpdate)
-          case final value?)
-        'lastLocationUpdate': value,
-      if (instance.hospitalName case final value?) 'hospitalName': value,
-      if (instance.hospitalAddress case final value?) 'hospitalAddress': value,
-      if (instance.hospitalContact case final value?) 'hospitalContact': value,
+      'nextAppointmentDate':
+          const TimestampConverter().toJson(instance.nextAppointmentDate),
+      'nextAppointmentLocation': instance.nextAppointmentLocation,
+      'location': const GeoPointConverter().toJson(instance.location),
+      'lastLocationUpdate':
+          const TimestampConverter().toJson(instance.lastLocationUpdate),
+      'hospitalName': instance.hospitalName,
+      'hospitalAddress': instance.hospitalAddress,
+      'hospitalContact': instance.hospitalContact,
       'isHospitalVerified': instance.isHospitalVerified,
-      if (instance.associatedDonationCenterId case final value?)
-        'associatedDonationCenterId': value,
+      'associatedDonationCenterId': instance.associatedDonationCenterId,
     };
 
 const _$UserGenderEnumMap = {

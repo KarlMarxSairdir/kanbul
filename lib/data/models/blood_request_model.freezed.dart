@@ -29,6 +29,7 @@ mixin _$BloodRequest {
   String get bloodType => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
+  String get hospitalName => throw _privateConstructorUsedError;
   int get unitsNeeded => throw _privateConstructorUsedError;
   int get urgencyLevel =>
       throw _privateConstructorUsedError; // Nullable alanlar
@@ -38,7 +39,6 @@ mixin _$BloodRequest {
   Timestamp? get createdAt => throw _privateConstructorUsedError;
   @TimestampConverter()
   Timestamp? get updatedAt => throw _privateConstructorUsedError;
-  String? get hospitalName => throw _privateConstructorUsedError;
   String? get patientInfo => throw _privateConstructorUsedError;
   String? get contactPhone =>
       throw _privateConstructorUsedError; // Gerekli alanlar (varsayılan değerlerle)
@@ -70,12 +70,12 @@ abstract class $BloodRequestCopyWith<$Res> {
       String bloodType,
       String title,
       String description,
+      String hospitalName,
       int unitsNeeded,
       int urgencyLevel,
       @GeoPointConverter() GeoPoint? location,
       @TimestampConverter() Timestamp? createdAt,
       @TimestampConverter() Timestamp? updatedAt,
-      String? hospitalName,
       String? patientInfo,
       String? contactPhone,
       String status,
@@ -105,12 +105,12 @@ class _$BloodRequestCopyWithImpl<$Res, $Val extends BloodRequest>
     Object? bloodType = null,
     Object? title = null,
     Object? description = null,
+    Object? hospitalName = null,
     Object? unitsNeeded = null,
     Object? urgencyLevel = null,
     Object? location = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
-    Object? hospitalName = freezed,
     Object? patientInfo = freezed,
     Object? contactPhone = freezed,
     Object? status = null,
@@ -146,6 +146,10 @@ class _$BloodRequestCopyWithImpl<$Res, $Val extends BloodRequest>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
+      hospitalName: null == hospitalName
+          ? _value.hospitalName
+          : hospitalName // ignore: cast_nullable_to_non_nullable
+              as String,
       unitsNeeded: null == unitsNeeded
           ? _value.unitsNeeded
           : unitsNeeded // ignore: cast_nullable_to_non_nullable
@@ -166,10 +170,6 @@ class _$BloodRequestCopyWithImpl<$Res, $Val extends BloodRequest>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as Timestamp?,
-      hospitalName: freezed == hospitalName
-          ? _value.hospitalName
-          : hospitalName // ignore: cast_nullable_to_non_nullable
-              as String?,
       patientInfo: freezed == patientInfo
           ? _value.patientInfo
           : patientInfo // ignore: cast_nullable_to_non_nullable
@@ -210,12 +210,12 @@ abstract class _$$BloodRequestImplCopyWith<$Res>
       String bloodType,
       String title,
       String description,
+      String hospitalName,
       int unitsNeeded,
       int urgencyLevel,
       @GeoPointConverter() GeoPoint? location,
       @TimestampConverter() Timestamp? createdAt,
       @TimestampConverter() Timestamp? updatedAt,
-      String? hospitalName,
       String? patientInfo,
       String? contactPhone,
       String status,
@@ -243,12 +243,12 @@ class __$$BloodRequestImplCopyWithImpl<$Res>
     Object? bloodType = null,
     Object? title = null,
     Object? description = null,
+    Object? hospitalName = null,
     Object? unitsNeeded = null,
     Object? urgencyLevel = null,
     Object? location = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
-    Object? hospitalName = freezed,
     Object? patientInfo = freezed,
     Object? contactPhone = freezed,
     Object? status = null,
@@ -284,6 +284,10 @@ class __$$BloodRequestImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String,
+      hospitalName: null == hospitalName
+          ? _value.hospitalName
+          : hospitalName // ignore: cast_nullable_to_non_nullable
+              as String,
       unitsNeeded: null == unitsNeeded
           ? _value.unitsNeeded
           : unitsNeeded // ignore: cast_nullable_to_non_nullable
@@ -304,10 +308,6 @@ class __$$BloodRequestImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as Timestamp?,
-      hospitalName: freezed == hospitalName
-          ? _value.hospitalName
-          : hospitalName // ignore: cast_nullable_to_non_nullable
-              as String?,
       patientInfo: freezed == patientInfo
           ? _value.patientInfo
           : patientInfo // ignore: cast_nullable_to_non_nullable
@@ -343,12 +343,12 @@ class _$BloodRequestImpl extends _BloodRequest {
       required this.bloodType,
       required this.title,
       required this.description,
+      required this.hospitalName,
       required this.unitsNeeded,
       required this.urgencyLevel,
       @GeoPointConverter() this.location,
       @TimestampConverter() this.createdAt,
       @TimestampConverter() this.updatedAt,
-      this.hospitalName,
       this.patientInfo,
       this.contactPhone,
       this.status = 'active',
@@ -377,6 +377,8 @@ class _$BloodRequestImpl extends _BloodRequest {
   @override
   final String description;
   @override
+  final String hospitalName;
+  @override
   final int unitsNeeded;
   @override
   final int urgencyLevel;
@@ -390,8 +392,6 @@ class _$BloodRequestImpl extends _BloodRequest {
   @override
   @TimestampConverter()
   final Timestamp? updatedAt;
-  @override
-  final String? hospitalName;
   @override
   final String? patientInfo;
   @override
@@ -415,7 +415,7 @@ class _$BloodRequestImpl extends _BloodRequest {
 
   @override
   String toString() {
-    return 'BloodRequest(id: $id, creatorId: $creatorId, creatorName: $creatorName, creatorRole: $creatorRole, bloodType: $bloodType, title: $title, description: $description, unitsNeeded: $unitsNeeded, urgencyLevel: $urgencyLevel, location: $location, createdAt: $createdAt, updatedAt: $updatedAt, hospitalName: $hospitalName, patientInfo: $patientInfo, contactPhone: $contactPhone, status: $status, responseCount: $responseCount, acceptedDonorIds: $acceptedDonorIds)';
+    return 'BloodRequest(id: $id, creatorId: $creatorId, creatorName: $creatorName, creatorRole: $creatorRole, bloodType: $bloodType, title: $title, description: $description, hospitalName: $hospitalName, unitsNeeded: $unitsNeeded, urgencyLevel: $urgencyLevel, location: $location, createdAt: $createdAt, updatedAt: $updatedAt, patientInfo: $patientInfo, contactPhone: $contactPhone, status: $status, responseCount: $responseCount, acceptedDonorIds: $acceptedDonorIds)';
   }
 
   @override
@@ -435,6 +435,8 @@ class _$BloodRequestImpl extends _BloodRequest {
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
+            (identical(other.hospitalName, hospitalName) ||
+                other.hospitalName == hospitalName) &&
             (identical(other.unitsNeeded, unitsNeeded) ||
                 other.unitsNeeded == unitsNeeded) &&
             (identical(other.urgencyLevel, urgencyLevel) ||
@@ -445,8 +447,6 @@ class _$BloodRequestImpl extends _BloodRequest {
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
-            (identical(other.hospitalName, hospitalName) ||
-                other.hospitalName == hospitalName) &&
             (identical(other.patientInfo, patientInfo) ||
                 other.patientInfo == patientInfo) &&
             (identical(other.contactPhone, contactPhone) ||
@@ -469,12 +469,12 @@ class _$BloodRequestImpl extends _BloodRequest {
       bloodType,
       title,
       description,
+      hospitalName,
       unitsNeeded,
       urgencyLevel,
       location,
       createdAt,
       updatedAt,
-      hospitalName,
       patientInfo,
       contactPhone,
       status,
@@ -506,12 +506,12 @@ abstract class _BloodRequest extends BloodRequest {
       required final String bloodType,
       required final String title,
       required final String description,
+      required final String hospitalName,
       required final int unitsNeeded,
       required final int urgencyLevel,
       @GeoPointConverter() final GeoPoint? location,
       @TimestampConverter() final Timestamp? createdAt,
       @TimestampConverter() final Timestamp? updatedAt,
-      final String? hospitalName,
       final String? patientInfo,
       final String? contactPhone,
       final String status,
@@ -538,6 +538,8 @@ abstract class _BloodRequest extends BloodRequest {
   @override
   String get description;
   @override
+  String get hospitalName;
+  @override
   int get unitsNeeded;
   @override
   int get urgencyLevel; // Nullable alanlar
@@ -550,8 +552,6 @@ abstract class _BloodRequest extends BloodRequest {
   @override
   @TimestampConverter()
   Timestamp? get updatedAt;
-  @override
-  String? get hospitalName;
   @override
   String? get patientInfo;
   @override

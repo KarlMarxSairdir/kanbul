@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "430593857532",
-    "project_id": "kanbul-876dd",
-    "storage_bucket": "kanbul-876dd.firebasestorage.app"
+    "project_number": "320608547408",
+    "project_id": "kanbul-f987b",
+    "storage_bucket": "kanbul-f987b.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:430593857532:android:3558090b6ee40f4bbb8479",
+        "mobilesdk_app_id": "1:320608547408:android:f2491d0f3f6133ca30d755",
         "android_client_info": {
           "package_name": "com.example.kan_bul"
         }
@@ -15,26 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBPxp_1uHy8MysHtE2Fk0e4jfojUw1fv04"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:430593857532:android:38de05b212dfbf2ebb8479",
-        "android_client_info": {
-          "package_name": "com.furkanucan.kanbul"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBPxp_1uHy8MysHtE2Fk0e4jfojUw1fv04"
+          "current_key": "AIzaSyCoESI3gLyUmqdVDpu7qzzQU6pX73NJjHc"
         }
       ],
       "services": {

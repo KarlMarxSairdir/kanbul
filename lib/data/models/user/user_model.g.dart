@@ -31,21 +31,16 @@ Map<String, dynamic> _$$UserModelImplToJson(_$UserModelImpl instance) =>
       'id': instance.id,
       'username': instance.username,
       'email': instance.email,
-      if (instance.phoneNumber case final value?) 'phoneNumber': value,
+      'phoneNumber': instance.phoneNumber,
       'role': _$UserRoleEnumMap[instance.role]!,
-      if (instance.photoUrl case final value?) 'photoUrl': value,
+      'photoUrl': instance.photoUrl,
       'emailVerified': instance.emailVerified,
       'settings': instance.settings.toJson(),
       'profileData': instance.profileData.toJson(),
-      if (const GeoPointConverter().toJson(instance.lastKnownLocation)
-          case final value?)
-        'lastKnownLocation': value,
-      if (const TimestampConverter().toJson(instance.createdAt)
-          case final value?)
-        'createdAt': value,
-      if (const TimestampConverter().toJson(instance.updatedAt)
-          case final value?)
-        'updatedAt': value,
+      'lastKnownLocation':
+          const GeoPointConverter().toJson(instance.lastKnownLocation),
+      'createdAt': const TimestampConverter().toJson(instance.createdAt),
+      'updatedAt': const TimestampConverter().toJson(instance.updatedAt),
     };
 
 const _$UserRoleEnumMap = {

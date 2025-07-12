@@ -39,12 +39,9 @@ Map<String, dynamic> _$$ChatModelImplToJson(_$ChatModelImpl instance) =>
       'participantNames': instance.participantNames,
       'participantAvatars': instance.participantAvatars,
       'requestId': instance.requestId,
-      if (instance.contextId case final value?) 'contextId': value,
-      if (instance.lastMessage case final value?) 'lastMessage': value,
-      if (const TimestampConverter().toJson(instance.lastMessageTimestamp)
-          case final value?)
-        'lastMessageTimestamp': value,
-      if (const MapTimestampConverter().toJson(instance.lastReadAt)
-          case final value?)
-        'lastReadAt': value,
+      'contextId': instance.contextId,
+      'lastMessage': instance.lastMessage,
+      'lastMessageTimestamp':
+          const TimestampConverter().toJson(instance.lastMessageTimestamp),
+      'lastReadAt': const MapTimestampConverter().toJson(instance.lastReadAt),
     };

@@ -17,7 +17,6 @@ _$AuthStateImpl _$$AuthStateImplFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$$AuthStateImplToJson(_$AuthStateImpl instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
-      if (const UserModelConverter().toJson(instance.user) case final value?)
-        'user': value,
-      if (instance.errorMessage case final value?) 'errorMessage': value,
+      'user': const UserModelConverter().toJson(instance.user),
+      'errorMessage': instance.errorMessage,
     };

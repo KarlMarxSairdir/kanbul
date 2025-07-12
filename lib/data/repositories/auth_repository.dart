@@ -169,18 +169,31 @@ class AuthRepository implements IAuthRepository {
         username: username,
         phoneNumber: phoneNumber,
         role: role,
-        profileData: profileData, // GÜNCELLENMİŞ profileData KULLANILIYOR
-        emailVerified: firebaseUser.emailVerified, // Initially false
+        profileData: profileData,
+        emailVerified: firebaseUser.emailVerified,
         createdAt: Timestamp.fromDate(now),
         updatedAt: Timestamp.fromDate(now),
-        settings: const UserSettingsModel(), // Default settings
-      );
-      _logger.d(
-        "AuthRepository: UserModel objesi oluşturuldu: ${newUserModel.id} with profileData: ${profileData.toJson()}",
+        settings: const UserSettingsModel(),
       );
 
-      // 3. UserModel'i Firestore'a kaydet
-      await _firestoreService.setUserData(newUserModel);
+      _logger.d(
+        "AuthRepository: UserModel objesi oluşturuldu: ${newUserModel.id}",
+      );
+
+      // ----------- HİPOTEZ TESTİ VE ÇÖZÜMÜN KENDİSİ BURADA -----------
+      // Freezed tarafından üretilen standart toJson() metodunu çağırıyoruz.
+      // Bir önceki cevabımda model dosyalarını düzelttiysen, bu doğru çalışacaktır.
+      final userDataMap = newUserModel.toJson();
+
+      // Loglayarak gönderilecek verinin doğru formatta (Map) olduğunu kontrol edelim.
+      logger.i("Firestore'a GÖNDERİLECEK VERİ: $userDataMap");
+      // -------------------------------------------------------------
+
+      // 3. UserModel'i Firestore'a kaydet (Artık Map olarak gönderiyoruz)
+      // Firestore servisine doğrudan Map yollamak daha güvenlidir.
+      // FirestoreService'teki metodun Map<String, dynamic> kabul ettiğini varsayıyorum.
+      await _firestoreService.setUserData(firebaseUser.uid, userDataMap);
+
       _logger.d(
         "AuthRepository: UserModel Firestore'a kaydedildi: ${newUserModel.id}",
       );
@@ -294,7 +307,10 @@ class AuthRepository implements IAuthRepository {
           updatedAt: Timestamp.fromDate(now), // DateTime -> Timestamp
           settings: UserSettingsModel(),
         );
-        await _firestoreService.setUserData(userModel);
+        await _firestoreService.setUserData(
+          firebaseUser.uid,
+          userModel.toJson(),
+        );
         _logger.d(
           "AuthRepository: Yeni Google kullanıcısı için UserModel Firestore'a kaydedildi.",
         );
@@ -472,7 +488,7 @@ class AuthRepository implements IAuthRepository {
         );
 
         // Yeni oluşturulan profili Firestore'a kaydet (yeni doküman oluşturulduğu için merge gerekmez)
-        await _firestoreService.setUserData(userModel);
+        await _firestoreService.setUserData(userModel.id, userModel.toJson());
         _logger.i(
           "AuthRepository: Firestore'da eksik profil oluşturuldu: ${userModel.id}",
         );

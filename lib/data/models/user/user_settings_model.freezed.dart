@@ -21,10 +21,8 @@ UserSettingsModel _$UserSettingsModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$UserSettingsModel {
   bool get notificationsEnabled => throw _privateConstructorUsedError;
-  String get privacyLevel =>
-      throw _privateConstructorUsedError; // 'public', 'friends_only', 'private'
-  bool get locationSharingEnabled =>
-      throw _privateConstructorUsedError; // İzin akışının çalışması için varsayılan değer false olmalı
+  String get privacyLevel => throw _privateConstructorUsedError;
+  bool get locationSharingEnabled => throw _privateConstructorUsedError;
   bool get locationPermissionAsked => throw _privateConstructorUsedError;
 
   /// Serializes this UserSettingsModel to a JSON map.
@@ -163,11 +161,9 @@ class _$UserSettingsModelImpl implements _UserSettingsModel {
   @override
   @JsonKey()
   final String privacyLevel;
-// 'public', 'friends_only', 'private'
   @override
   @JsonKey()
   final bool locationSharingEnabled;
-// İzin akışının çalışması için varsayılan değer false olmalı
   @override
   @JsonKey()
   final bool locationPermissionAsked;
@@ -228,10 +224,9 @@ abstract class _UserSettingsModel implements UserSettingsModel {
   @override
   bool get notificationsEnabled;
   @override
-  String get privacyLevel; // 'public', 'friends_only', 'private'
+  String get privacyLevel;
   @override
-  bool
-      get locationSharingEnabled; // İzin akışının çalışması için varsayılan değer false olmalı
+  bool get locationSharingEnabled;
   @override
   bool get locationPermissionAsked;
 

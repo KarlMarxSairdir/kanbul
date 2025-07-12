@@ -20,7 +20,6 @@ UserProfileDataModel _$UserProfileDataModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$UserProfileDataModel {
-// --- Bireysel Kullanıcı Alanları ---
   String? get bloodType => throw _privateConstructorUsedError;
   @TimestampConverter()
   Timestamp? get lastDonationDate => throw _privateConstructorUsedError;
@@ -30,22 +29,18 @@ mixin _$UserProfileDataModel {
   UserGender get gender => throw _privateConstructorUsedError;
   @TimestampConverter()
   Timestamp? get birthDate => throw _privateConstructorUsedError;
-  String? get activeRequestId =>
-      throw _privateConstructorUsedError; // --- Yeni Eklenen Oyunlaştırma Alanları ---
+  String? get activeRequestId => throw _privateConstructorUsedError;
   int get totalLivesSaved => throw _privateConstructorUsedError;
   List<String> get badges => throw _privateConstructorUsedError;
   int get level => throw _privateConstructorUsedError;
-  int get points =>
-      throw _privateConstructorUsedError; // --- Yeni Eklenen Randevu Alanları ---
+  int get points => throw _privateConstructorUsedError;
   @TimestampConverter()
   Timestamp? get nextAppointmentDate => throw _privateConstructorUsedError;
-  String? get nextAppointmentLocation =>
-      throw _privateConstructorUsedError; // --- Konum Bilgisi Alanları ---
+  String? get nextAppointmentLocation => throw _privateConstructorUsedError;
   @GeoPointConverter()
   GeoPoint? get location => throw _privateConstructorUsedError;
   @TimestampConverter()
-  Timestamp? get lastLocationUpdate =>
-      throw _privateConstructorUsedError; // --- Hastane Kullanıcısı Alanları ---
+  Timestamp? get lastLocationUpdate => throw _privateConstructorUsedError;
   String? get hospitalName => throw _privateConstructorUsedError;
   String? get hospitalAddress => throw _privateConstructorUsedError;
   String? get hospitalContact => throw _privateConstructorUsedError;
@@ -406,7 +401,6 @@ class _$UserProfileDataModelImpl extends _UserProfileDataModel {
   factory _$UserProfileDataModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$UserProfileDataModelImplFromJson(json);
 
-// --- Bireysel Kullanıcı Alanları ---
   @override
   final String? bloodType;
   @override
@@ -428,7 +422,6 @@ class _$UserProfileDataModelImpl extends _UserProfileDataModel {
   final Timestamp? birthDate;
   @override
   final String? activeRequestId;
-// --- Yeni Eklenen Oyunlaştırma Alanları ---
   @override
   @JsonKey()
   final int totalLivesSaved;
@@ -447,20 +440,17 @@ class _$UserProfileDataModelImpl extends _UserProfileDataModel {
   @override
   @JsonKey()
   final int points;
-// --- Yeni Eklenen Randevu Alanları ---
   @override
   @TimestampConverter()
   final Timestamp? nextAppointmentDate;
   @override
   final String? nextAppointmentLocation;
-// --- Konum Bilgisi Alanları ---
   @override
   @GeoPointConverter()
   final GeoPoint? location;
   @override
   @TimestampConverter()
   final Timestamp? lastLocationUpdate;
-// --- Hastane Kullanıcısı Alanları ---
   @override
   final String? hospitalName;
   @override
@@ -599,7 +589,6 @@ abstract class _UserProfileDataModel extends UserProfileDataModel {
   factory _UserProfileDataModel.fromJson(Map<String, dynamic> json) =
       _$UserProfileDataModelImpl.fromJson;
 
-// --- Bireysel Kullanıcı Alanları ---
   @override
   String? get bloodType;
   @override
@@ -617,7 +606,7 @@ abstract class _UserProfileDataModel extends UserProfileDataModel {
   @TimestampConverter()
   Timestamp? get birthDate;
   @override
-  String? get activeRequestId; // --- Yeni Eklenen Oyunlaştırma Alanları ---
+  String? get activeRequestId;
   @override
   int get totalLivesSaved;
   @override
@@ -625,18 +614,18 @@ abstract class _UserProfileDataModel extends UserProfileDataModel {
   @override
   int get level;
   @override
-  int get points; // --- Yeni Eklenen Randevu Alanları ---
+  int get points;
   @override
   @TimestampConverter()
   Timestamp? get nextAppointmentDate;
   @override
-  String? get nextAppointmentLocation; // --- Konum Bilgisi Alanları ---
+  String? get nextAppointmentLocation;
   @override
   @GeoPointConverter()
   GeoPoint? get location;
   @override
   @TimestampConverter()
-  Timestamp? get lastLocationUpdate; // --- Hastane Kullanıcısı Alanları ---
+  Timestamp? get lastLocationUpdate;
   @override
   String? get hospitalName;
   @override

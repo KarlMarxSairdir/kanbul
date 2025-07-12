@@ -8,10 +8,7 @@ part of 'firestore_service.dart';
 
 String _$firestoreServiceHash() => r'e33ea97f83f8ad99c911e3017923913eee83162d';
 
-/// FirestoreService için Riverpod Provider'ı.
-/// Bu provider, Firestore instance'ını alarak FirestoreService'i oluşturur.
-///
-/// Copied from [firestoreService].
+/// See also [firestoreService].
 @ProviderFor(firestoreService)
 final firestoreServiceProvider = Provider<FirestoreService>.internal(
   firestoreService,
@@ -28,10 +25,7 @@ final firestoreServiceProvider = Provider<FirestoreService>.internal(
 typedef FirestoreServiceRef = ProviderRef<FirestoreService>;
 String _$firestoreHash() => r'a56abe42f3fb3ee8bfee4e56b46a7bf8561bdc93';
 
-/// FirebaseFirestore instance'ı için temel Riverpod Provider'ı.
-/// Bu, testlerde mock Firestore instance'ı sağlamayı kolaylaştırır.
-///
-/// Copied from [firestore].
+/// See also [firestore].
 @ProviderFor(firestore)
 final firestoreProvider = Provider<FirebaseFirestore>.internal(
   firestore,

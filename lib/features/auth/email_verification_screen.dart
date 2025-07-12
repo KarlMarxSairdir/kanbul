@@ -128,30 +128,25 @@ class _EmailVerificationScreenState
         return;
       }
 
-      // Kullanıcıyı güncelledikten sonra doğrulama durumunu kontrol et
       final isVerified = refreshedUser.emailVerified;
       logger.d("E-posta doğrulama durumu: $isVerified");
 
-      // Doğrulama durumunu riverpod state'e yansıt
-      // AuthNotifier'daki refreshUser, _handleAuthStateChange aracılığıyla kullanıcıyı güncelleyecektir.
-      await ref.read(authStateNotifierProvider.notifier).refreshUser();
+      if (isVerified) {
+        // ÖNEMLİ DEĞİŞİKLİK: refreshUser() çağrısını bu bloğun içine taşıdık.
+        // Sadece ve sadece e-posta doğrulandıktan sonra Firestore'dan veri çekiyoruz.
+        await ref.read(authStateNotifierProvider.notifier).refreshUser();
 
-      if (_disposed) return;
+        if (_disposed) return;
 
-      // Doğrulama durumunu kontrol et
-      if (isVerified && !_disposed) {
-        // ÖNEMLİ: E-posta doğrulama durumu Firestore'a refreshUser tarafından kaydedilecektir.
-
-        // Email doğrulandı, zamanlayıcıları durdur
+        // Doğrulama tamamlandı, zamanlayıcıları durdur
         _periodicTimer?.cancel();
         _timer?.cancel();
-
         setState(() => _verificationCompleted = true);
 
-        // Doğrulama tamamlandı, bir sonraki ekrana geç
-        logger.i("E-posta doğrulandı! İzin ekranına yönlendiriliyor.");
+        logger.i("E-posta doğrulandı! Bir sonraki ekrana yönlendiriliyor.");
         _navigateToNextScreen();
       }
+      // else bloğuna gerek yok. Eğer doğrulanmadıysa, timer bir sonraki sefer tekrar çalışacak.
     } catch (e) {
       if (!_disposed) {
         logger.e("E-posta doğrulama durumu kontrol edilirken hata:", error: e);
@@ -214,11 +209,8 @@ class _EmailVerificationScreenState
       logger.d("Manuel e-posta doğrulama kontrolü: $isVerified");
 
       if (isVerified) {
-        // Doğrulama başarılı, güncelle
+        // Doğrulama başarılı, sadece şimdi Firestore'dan veri çek
         final notifier = ref.read(authStateNotifierProvider.notifier);
-
-        // ÖNEMLİ: E-posta doğrulama durumu Firestore'a refreshUser tarafından kaydedilecektir.
-
         await notifier.refreshUser(); // Kullanıcı modelini güncelle
 
         setState(() {

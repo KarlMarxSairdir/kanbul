@@ -19,7 +19,5 @@ Map<String, dynamic> _$$MessageModelImplToJson(_$MessageModelImpl instance) =>
       'id': instance.id,
       'senderId': instance.senderId,
       'text': instance.text,
-      if (const TimestampConverter().toJson(instance.timestamp)
-          case final value?)
-        'timestamp': value,
+      'timestamp': const TimestampConverter().toJson(instance.timestamp),
     };
