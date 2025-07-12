@@ -33,6 +33,9 @@ android/local.properties
 android/.gradle/
 android/app/src/main/jniLibs/
 
+# AndroidManifest'i ekle
+android/app/src/main/AndroidManifest.xml
+
 # Firebase
 lib/firebase_options.dart
 
