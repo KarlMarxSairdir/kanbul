@@ -21,9 +21,9 @@
         android:enableOnBackInvokedCallback="true">
 
         <!-- <<< YENİ: Google Maps API Anahtarı >>> -->
-        <!-- "YOUR_API_KEY_HERE" kısmını KENDİ anahtarınızla değiştirin -->
+        <!-- Firebase'den alınan Android key kullanılıyor -->
         <meta-data android:name="com.google.android.geo.API_KEY"
-                   android:value="AIzaSyAkgQgBTjRFg0pfDkhDB55_cFe5vYOKL2Q"/>
+                   android:value="AIzaSyCejYAI4EG_1M5tZGyetf1Li7LYgpxIAVw"/>
 
         <activity
             android:name=".MainActivity"

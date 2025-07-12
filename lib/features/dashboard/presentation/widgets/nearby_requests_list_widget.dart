@@ -67,8 +67,7 @@ class NearbyRequestsListWidget extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 350),
+                Expanded(
                   child: buildEmptyListWidget(
                     context,
                     'Çevrenizde size uygun aktif kan talebi bulunmuyor.',

@@ -249,12 +249,16 @@ Widget buildEmptyListWidget(
             ).colorScheme.secondary.withAlpha((0.7 * 255).round()),
           ),
           const SizedBox(height: 8),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).textTheme.bodySmall?.color,
+          Flexible(
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodySmall?.color,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.visible,
+              softWrap: true,
             ),
-            textAlign: TextAlign.center,
           ),
           if (isUserList) ...[
             const SizedBox(height: 12),
