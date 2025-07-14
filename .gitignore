@@ -76,6 +76,7 @@ windows/flutter/
 # Geçici ve yedek dosyalar
 *.tmp
 *.db
+android/app/google-services.json
 *.sqlite
 *.bak
 *.lock

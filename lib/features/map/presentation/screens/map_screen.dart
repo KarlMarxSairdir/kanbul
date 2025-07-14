@@ -47,11 +47,11 @@ class MapScreenState extends ConsumerState<MapScreen> {
   bool _isLoadingRequests = false;
   String? _errorMessage;
   String? _mapStyle;
+  bool _isMapStyleLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _loadMapStyle();
     logger.d(
       "MapScreen: initState - SelectionMode: ${widget.isLocationSelectionMode}",
     );
@@ -76,11 +76,28 @@ class MapScreenState extends ConsumerState<MapScreen> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Sadece ilk yüklemede style'ı yükle
+    if (!_isMapStyleLoaded) {
+      _loadMapStyle();
+    }
+  }
+
   Future<void> _loadMapStyle() async {
-    final isDark = MediaQuery.of(context).platformBrightness == Brightness.dark;
-    final stylePath =
-        isDark ? 'assets/map_style_dark.json' : 'assets/map_style_light.json';
+    // Her zaman açık tema kullan
+    const stylePath = 'assets/map_style_light.json';
     _mapStyle = await rootBundle.loadString(stylePath);
+    _isMapStyleLoaded = true;
+    logger.d("MapScreen: Map style loaded - Always using light theme");
+
+    // Eğer harita zaten oluşturulmuşsa style'ı güncelle
+    if (_controllerCompleter.isCompleted) {
+      final controller = await _controllerCompleter.future;
+      await controller.setMapStyle(_mapStyle);
+    }
   }
 
   @override

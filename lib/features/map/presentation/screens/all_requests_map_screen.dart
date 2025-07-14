@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:kan_bul/core/utils/blood_compatibility.dart';
 import 'package:kan_bul/core/providers/auth_state_notifier.dart';
+import 'package:flutter/services.dart'; // rootBundle için
 
 class AllRequestsMapScreen extends ConsumerStatefulWidget {
   const AllRequestsMapScreen({super.key});
@@ -23,6 +24,8 @@ class _AllRequestsMapScreenState extends ConsumerState<AllRequestsMapScreen> {
   final _markers = <Marker>{};
   AsyncValue<List<BloodRequest>> _asyncRequests = const AsyncLoading();
   Position? _currentPosition;
+  String? _mapStyle;
+  bool _isMapStyleLoaded = false;
 
   @override
   void initState() {
@@ -46,6 +49,29 @@ class _AllRequestsMapScreenState extends ConsumerState<AllRequestsMapScreen> {
             });
           },
         );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Sadece ilk yüklemede style'ı yükle
+    if (!_isMapStyleLoaded) {
+      _loadMapStyle();
+    }
+  }
+
+  Future<void> _loadMapStyle() async {
+    // Her zaman açık tema kullan
+    const stylePath = 'assets/map_style_light.json';
+    _mapStyle = await rootBundle.loadString(stylePath);
+    _isMapStyleLoaded = true;
+    
+    // Eğer harita zaten oluşturulmuşsa style'ı güncelle
+    if (_c.isCompleted) {
+      final controller = await _c.future;
+      await controller.setMapStyle(_mapStyle);
+    }
   }
 
   Future<void> _getCurrentLocation() async {
@@ -115,6 +141,7 @@ class _AllRequestsMapScreenState extends ConsumerState<AllRequestsMapScreen> {
       body: Stack(
         children: [
           GoogleMap(
+            style: _mapStyle,
             initialCameraPosition:
                 _currentPosition != null
                     ? CameraPosition(
@@ -132,6 +159,12 @@ class _AllRequestsMapScreenState extends ConsumerState<AllRequestsMapScreen> {
             markers: _markers,
             onMapCreated: (c) async {
               _c.complete(c);
+              
+              // Map style'ı uygula
+              if (_mapStyle != null) {
+                await c.setMapStyle(_mapStyle);
+              }
+              
               if (_currentPosition != null) {
                 c.animateCamera(
                   CameraUpdate.newCameraPosition(
